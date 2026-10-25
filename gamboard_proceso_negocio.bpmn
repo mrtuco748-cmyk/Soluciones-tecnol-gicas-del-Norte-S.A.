@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_Gamboard_Final" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.29.0">
+  <bpmn:collaboration id="Collaboration_Gamboard">
+    <bpmn:participant id="Participant_Gamboard" name="Plataforma Gamboard &#38; Estudio Indie" processRef="Process_Gamboard" />
+    <bpmn:participant id="Participant_Facturacion" name="Módulo de Facturación y Cobros (Entrega 1 - Soluciones Tecnológicas del Norte S.A.)" processRef="Process_Facturacion" />
+    <bpmn:messageFlow id="MsgFlow_SolicitudPago" name="Solicitud de Cobro Plan Pro" sourceRef="Task_SolicitarPago" targetRef="StartEvent_Facturacion" />
+    <bpmn:messageFlow id="MsgFlow_ConfirmacionPago" sourceRef="EndEvent_FacturacionAprobada" targetRef="Event_PagoConfirmado" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Gamboard" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Gamboard">
+      <bpmn:lane id="Lane_Usuario" name="Estudio Indie (Game Designer / Artista)">
+        <bpmn:flowNodeRef>Gateway_ModoIngesta</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ElegirPlantilla</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EditarTablero</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RevisarAlertas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SolicitarPitch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Exito</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CargaManual</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CargarZip</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SeleccionarModo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>StartEvent_Inicio</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_RevisarAuditoria</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Frontend" name="Gamboard Frontend (UI &#38; Tablero)">
+        <bpmn:flowNodeRef>Task_ValidarArchivos</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RenderBlanco</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MostrarCarrusel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SincronizarTablero</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MostrarBadgeNoInvasivo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_VisualizarPitch</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Backend" name="Gamboard Core &#38; Pipeline Agentes IA">
+        <bpmn:flowNodeRef>Gateway_VerificarPlan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SolicitarPago</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Descomprimir</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AnalisisMultimodal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GenerarPlantillas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ForkAuditoria</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuditorCoherencia</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RadarMercado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_JoinAuditoria</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CompilarPresentacion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_PagoConfirmado</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:exclusiveGateway id="Gateway_ModoIngesta" name="¿Modalidad?">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Manual</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ZipPro</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_ValidarArchivos" name="Validar Formatos y Previsualizar">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_RenderBlanco" name="Inicializar Tablero Vacío">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEditDirect</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_VerificarPlan" name="¿Usuario cuenta con Plan Pro?">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_NoPro</bpmn:outgoing>
+      <bpmn:outgoing>Flow_EsPro</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_SolicitarPago" name="mostrar solicitud a plan pro">
+      <bpmn:incoming>Flow_NoPro</bpmn:incoming>
+      <bpmn:outgoing>Flow_EsperarPago</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Descomprimir" name="Descomprimir y Extraer Documentos/Assets">
+      <bpmn:incoming>Flow_EsPro</bpmn:incoming>
+      <bpmn:incoming>Flow_PagoListo</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_AnalisisMultimodal" name="Pipeline IA: Visión Arte + NLP de GDD">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_GenerarPlantillas" name="Sintetizar y Generar Opciones de Tablero">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_MostrarCarrusel" name="Desplegar Carrusel de Plantillas IA">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_ElegirPlantilla" name="Seleccionar Plantilla Favorita">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_EditarTablero" name="Organizar Tablero, Sprints y Tareas">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:incoming>Flow_ToEditDirect</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_SincronizarTablero" name="Sincronizar Entidades (PROYECTO_JUEGO)">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Gateway_ForkAuditoria">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_AuditorCoherencia</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RadarMercado</bpmn:outgoing>
+      <bpmn:outgoing>Flow_UserContinues</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Task_AuditorCoherencia" name="Agente IA: Detección de Contradicciones GDD">
+      <bpmn:incoming>Flow_AuditorCoherencia</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_RadarMercado" name="Agente IA: Benchmarking y Similitud Web">
+      <bpmn:incoming>Flow_RadarMercado</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Gateway_JoinAuditoria">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Task_MostrarBadgeNoInvasivo" name="Publicar Badge Discreto de Hallazgos en UI">
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_BadgeListo</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_SolicitarPitch" name="Solicitar Generación de Pitch Deck / GDD">
+      <bpmn:incoming>Flow_UserContinues</bpmn:incoming>
+      <bpmn:incoming>Flow_BadgeListo</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_RevisarAlertas" name="Revisar Reporte y Ajustar Coherencia">
+      <bpmn:incoming>Flow_RevisarSi</bpmn:incoming>
+      <bpmn:outgoing>Flow_Ajustado</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_CompilarPresentacion" name="Motor: Compilar Presentación Ejecutiva y PDF">
+      <bpmn:incoming>Flow_RevisarNo</bpmn:incoming>
+      <bpmn:incoming>Flow_Ajustado</bpmn:incoming>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_VisualizarPitch" name="Habilitar Link Protegido y Descarga Directa">
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+      <bpmn:outgoing>Flow_18</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_Exito" name="Presentación Lista&#10;para Publishers">
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Inicio" targetRef="Task_SeleccionarModo" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_SeleccionarModo" targetRef="Gateway_ModoIngesta" />
+    <bpmn:sequenceFlow id="Flow_Manual" name="Manual (Free)" sourceRef="Gateway_ModoIngesta" targetRef="Task_CargaManual" />
+    <bpmn:sequenceFlow id="Flow_ZipPro" name="Archivo Comprimido (Pro)" sourceRef="Gateway_ModoIngesta" targetRef="Task_CargarZip" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_CargaManual" targetRef="Task_ValidarArchivos" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_CargarZip" targetRef="Task_ValidarArchivos" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_ValidarArchivos" targetRef="Gateway_VerificarPlan" />
+    <bpmn:sequenceFlow id="Flow_ToEditDirect" sourceRef="Task_RenderBlanco" targetRef="Task_EditarTablero" />
+    <bpmn:sequenceFlow id="Flow_NoPro" name="No tiene Pro" sourceRef="Gateway_VerificarPlan" targetRef="Task_SolicitarPago" />
+    <bpmn:sequenceFlow id="Flow_EsPro" name="Ya es Pro" sourceRef="Gateway_VerificarPlan" targetRef="Task_Descomprimir" />
+    <bpmn:sequenceFlow id="Flow_EsperarPago" sourceRef="Task_SolicitarPago" targetRef="Event_PagoConfirmado" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Descomprimir" targetRef="Task_AnalisisMultimodal" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_AnalisisMultimodal" targetRef="Task_GenerarPlantillas" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_GenerarPlantillas" targetRef="Task_MostrarCarrusel" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_MostrarCarrusel" targetRef="Task_ElegirPlantilla" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_ElegirPlantilla" targetRef="Task_EditarTablero" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Task_EditarTablero" targetRef="Task_SincronizarTablero" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Task_SincronizarTablero" targetRef="Gateway_ForkAuditoria" />
+    <bpmn:sequenceFlow id="Flow_AuditorCoherencia" sourceRef="Gateway_ForkAuditoria" targetRef="Task_AuditorCoherencia" />
+    <bpmn:sequenceFlow id="Flow_RadarMercado" sourceRef="Gateway_ForkAuditoria" targetRef="Task_RadarMercado" />
+    <bpmn:sequenceFlow id="Flow_UserContinues" sourceRef="Gateway_ForkAuditoria" targetRef="Task_SolicitarPitch" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Task_AuditorCoherencia" targetRef="Gateway_JoinAuditoria" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="Task_RadarMercado" targetRef="Gateway_JoinAuditoria" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Gateway_JoinAuditoria" targetRef="Task_MostrarBadgeNoInvasivo" />
+    <bpmn:sequenceFlow id="Flow_BadgeListo" sourceRef="Task_MostrarBadgeNoInvasivo" targetRef="Task_SolicitarPitch" />
+    <bpmn:sequenceFlow id="Flow_16" sourceRef="Task_SolicitarPitch" targetRef="Gateway_RevisarAuditoria" />
+    <bpmn:sequenceFlow id="Flow_RevisarSi" name="Sí" sourceRef="Gateway_RevisarAuditoria" targetRef="Task_RevisarAlertas" />
+    <bpmn:sequenceFlow id="Flow_RevisarNo" name="No (Continuar)" sourceRef="Gateway_RevisarAuditoria" targetRef="Task_CompilarPresentacion" />
+    <bpmn:sequenceFlow id="Flow_Ajustado" sourceRef="Task_RevisarAlertas" targetRef="Task_CompilarPresentacion" />
+    <bpmn:sequenceFlow id="Flow_17" sourceRef="Task_CompilarPresentacion" targetRef="Task_VisualizarPitch" />
+    <bpmn:sequenceFlow id="Flow_18" sourceRef="Task_VisualizarPitch" targetRef="EndEvent_Exito" />
+    <bpmn:task id="Task_CargaManual" name="Carga Manual de Documentos/Arte (Free)">
+      <bpmn:incoming>Flow_Manual</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_CargarZip" name="Subir Archivo .ZIP / .7Z de Migración (Pro)">
+      <bpmn:incoming>Flow_ZipPro</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_PagoListo" sourceRef="Event_PagoConfirmado" targetRef="Task_Descomprimir" />
+    <bpmn:intermediateCatchEvent id="Event_PagoConfirmado" name="Confirmación de Pago Recibida">
+      <bpmn:incoming>Flow_EsperarPago</bpmn:incoming>
+      <bpmn:outgoing>Flow_PagoListo</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MsgDef_PagoConfirmado" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="Task_SeleccionarModo" name="Seleccionar Modalidad de Inicio">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:startEvent id="StartEvent_Inicio" name="Nuevo Proyecto">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_RevisarAuditoria" name="¿Consultar Alertas de Auditoría?">
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:outgoing>Flow_RevisarSi</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RevisarNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+  </bpmn:process>
+  <bpmn:process id="Process_Facturacion" isExecutable="false">
+    <bpmn:exclusiveGateway id="Gateway_CobroExitoso" name="¿Cobro Aprobado?">
+      <bpmn:incoming>Flow_Fact_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_CobroSi</bpmn:outgoing>
+      <bpmn:outgoing>Flow_CobroNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_EmitirFactura" name="hacer FACTURA_SUSCRIPCION">
+      <bpmn:incoming>Flow_CobroSi</bpmn:incoming>
+      <bpmn:outgoing>Flow_Fact_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_HabilitarLicencia" name="categorizar su cuenta a &#60;&#60;pro&#62;&#62;">
+      <bpmn:incoming>Flow_Fact_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_Fact_4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_FacturacionAprobada" name="Confirmación y Factura Enviadas">
+      <bpmn:incoming>Flow_Fact_4</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MsgDef_FacturacionFin" />
+    </bpmn:endEvent>
+    <bpmn:task id="Task_NotificarRechazo" name="Registrar Error y Notificar Rechazo">
+      <bpmn:incoming>Flow_CobroNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_Fact_Error</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_FacturacionRechazada" name="Operación Cancelada">
+      <bpmn:incoming>Flow_Fact_Error</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Fact_1" sourceRef="StartEvent_Facturacion" targetRef="Task_ProcesarPasarela" />
+    <bpmn:sequenceFlow id="Flow_Fact_2" sourceRef="Task_ProcesarPasarela" targetRef="Gateway_CobroExitoso" />
+    <bpmn:sequenceFlow id="Flow_CobroSi" name="Sí" sourceRef="Gateway_CobroExitoso" targetRef="Task_EmitirFactura" />
+    <bpmn:sequenceFlow id="Flow_CobroNo" name="No (Rechazado)" sourceRef="Gateway_CobroExitoso" targetRef="Task_NotificarRechazo" />
+    <bpmn:sequenceFlow id="Flow_Fact_3" sourceRef="Task_EmitirFactura" targetRef="Task_HabilitarLicencia" />
+    <bpmn:sequenceFlow id="Flow_Fact_4" sourceRef="Task_HabilitarLicencia" targetRef="EndEvent_FacturacionAprobada" />
+    <bpmn:sequenceFlow id="Flow_Fact_Error" sourceRef="Task_NotificarRechazo" targetRef="EndEvent_FacturacionRechazada" />
+    <bpmn:task id="Task_ProcesarPasarela" name="Procesar Transacción">
+      <bpmn:incoming>Flow_Fact_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Fact_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:startEvent id="StartEvent_Facturacion" name="Orden de Cobro&#10;Recibida">
+      <bpmn:outgoing>Flow_Fact_1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MsgDef_FacturacionInicio" />
+    </bpmn:startEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Gamboard">
+    <bpmndi:BPMNPlane id="BPMNPlane_Gamboard" bpmnElement="Collaboration_Gamboard">
+      <bpmndi:BPMNShape id="Participant_Gamboard_di" bpmnElement="Participant_Gamboard" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2200" height="660" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Backend_di" bpmnElement="Lane_Backend" isHorizontal="true">
+        <dc:Bounds x="190" y="460" width="2170" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Frontend_di" bpmnElement="Lane_Frontend" isHorizontal="true">
+        <dc:Bounds x="190" y="270" width="2170" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Usuario_di" bpmnElement="Lane_Usuario" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2170" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ModoIngesta_di" bpmnElement="Gateway_ModoIngesta" isMarkerVisible="true">
+        <dc:Bounds x="445" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="438" y="111" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ValidarArchivos_di" bpmnElement="Task_ValidarArchivos">
+        <dc:Bounds x="540" y="325" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_VerificarPlan_di" bpmnElement="Gateway_VerificarPlan" isMarkerVisible="true">
+        <dc:Bounds x="695" y="525" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="609" y="536" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SolicitarPago_di" bpmnElement="Task_SolicitarPago">
+        <dc:Bounds x="780" y="620" width="110" height="70" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Descomprimir_di" bpmnElement="Task_Descomprimir">
+        <dc:Bounds x="860" y="515" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AnalisisMultimodal_di" bpmnElement="Task_AnalisisMultimodal">
+        <dc:Bounds x="995" y="515" width="110" height="70" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GenerarPlantillas_di" bpmnElement="Task_GenerarPlantillas">
+        <dc:Bounds x="1130" y="515" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MostrarCarrusel_di" bpmnElement="Task_MostrarCarrusel">
+        <dc:Bounds x="1270" y="325" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ElegirPlantilla_di" bpmnElement="Task_ElegirPlantilla">
+        <dc:Bounds x="1270" y="125" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EditarTablero_di" bpmnElement="Task_EditarTablero">
+        <dc:Bounds x="1410" y="125" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SincronizarTablero_di" bpmnElement="Task_SincronizarTablero">
+        <dc:Bounds x="1410" y="325" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ForkAuditoria_di" bpmnElement="Gateway_ForkAuditoria">
+        <dc:Bounds x="1545" y="525" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AuditorCoherencia_di" bpmnElement="Task_AuditorCoherencia">
+        <dc:Bounds x="1620" y="485" width="105" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RadarMercado_di" bpmnElement="Task_RadarMercado">
+        <dc:Bounds x="1620" y="565" width="105" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_JoinAuditoria_di" bpmnElement="Gateway_JoinAuditoria">
+        <dc:Bounds x="1745" y="525" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MostrarBadgeNoInvasivo_di" bpmnElement="Task_MostrarBadgeNoInvasivo">
+        <dc:Bounds x="1750" y="325" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SolicitarPitch_di" bpmnElement="Task_SolicitarPitch">
+        <dc:Bounds x="1890" y="125" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RevisarAlertas_di" bpmnElement="Task_RevisarAlertas">
+        <dc:Bounds x="2110" y="100" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CompilarPresentacion_di" bpmnElement="Task_CompilarPresentacion">
+        <dc:Bounds x="2060" y="515" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_VisualizarPitch_di" bpmnElement="Task_VisualizarPitch">
+        <dc:Bounds x="2190" y="325" width="100" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Exito_di" bpmnElement="EndEvent_Exito">
+        <dc:Bounds x="2302" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2276" y="185" width="89" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CargaManual_di" bpmnElement="Task_CargaManual">
+        <dc:Bounds x="665" y="95" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CargarZip_di" bpmnElement="Task_CargarZip">
+        <dc:Bounds x="635" y="180" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_PagoConfirmado_di" bpmnElement="Event_PagoConfirmado">
+        <dc:Bounds x="1292" y="672" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1338" y="676.5" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SeleccionarModo_di" bpmnElement="Task_SeleccionarModo">
+        <dc:Bounds x="325" y="120" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Inicio_di" bpmnElement="StartEvent_Inicio">
+        <dc:Bounds x="242" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="221" y="185" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_RevisarAuditoria_di" bpmnElement="Gateway_RevisarAuditoria" isMarkerVisible="true">
+        <dc:Bounds x="2035" y="175" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1983" y="210" width="54" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="278" y="160" />
+        <di:waypoint x="325" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="435" y="160" />
+        <di:waypoint x="445" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Manual_di" bpmnElement="Flow_Manual">
+        <di:waypoint x="495" y="160" />
+        <di:waypoint x="545" y="160" />
+        <di:waypoint x="545" y="130" />
+        <di:waypoint x="665" y="130" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="565" y="112" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ZipPro_di" bpmnElement="Flow_ZipPro">
+        <di:waypoint x="470" y="185" />
+        <di:waypoint x="470" y="215" />
+        <di:waypoint x="635" y="215" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="501" y="223" width="87" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="760" y="165" />
+        <di:waypoint x="760" y="290" />
+        <di:waypoint x="595" y="290" />
+        <di:waypoint x="595" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="690" y="250" />
+        <di:waypoint x="690" y="288" />
+        <di:waypoint x="595" y="288" />
+        <di:waypoint x="595" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="650" y="360" />
+        <di:waypoint x="720" y="360" />
+        <di:waypoint x="720" y="525" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NoPro_di" bpmnElement="Flow_NoPro">
+        <di:waypoint x="720" y="575" />
+        <di:waypoint x="720" y="655" />
+        <di:waypoint x="780" y="655" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="722" y="612" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_EsPro_di" bpmnElement="Flow_EsPro">
+        <di:waypoint x="745" y="550" />
+        <di:waypoint x="860" y="550" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="778" y="532" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_EsperarPago_di" bpmnElement="Flow_EsperarPago">
+        <di:waypoint x="890" y="655" />
+        <di:waypoint x="1310" y="655" />
+        <di:waypoint x="1310" y="672" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_PagoListo_di" bpmnElement="Flow_PagoListo">
+        <di:waypoint x="1295" y="700" />
+        <di:waypoint x="950" y="700" />
+        <di:waypoint x="950" y="585" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="970" y="550" />
+        <di:waypoint x="995" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="1105" y="550" />
+        <di:waypoint x="1130" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="1185" y="515" />
+        <di:waypoint x="1185" y="360" />
+        <di:waypoint x="1270" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="1325" y="325" />
+        <di:waypoint x="1325" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1380" y="160" />
+        <di:waypoint x="1410" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="1465" y="195" />
+        <di:waypoint x="1465" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="1465" y="395" />
+        <di:waypoint x="1465" y="550" />
+        <di:waypoint x="1545" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AuditorCoherencia_di" bpmnElement="Flow_AuditorCoherencia">
+        <di:waypoint x="1575" y="530" />
+        <di:waypoint x="1620" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RadarMercado_di" bpmnElement="Flow_RadarMercado">
+        <di:waypoint x="1570" y="575" />
+        <di:waypoint x="1570" y="595" />
+        <di:waypoint x="1620" y="595" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UserContinues_di" bpmnElement="Flow_UserContinues">
+        <di:waypoint x="1570" y="525" />
+        <di:waypoint x="1570" y="230" />
+        <di:waypoint x="1945" y="230" />
+        <di:waypoint x="1945" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="1725" y="530" />
+        <di:waypoint x="1765" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="1724" y="570" />
+        <di:waypoint x="1765" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15">
+        <di:waypoint x="1770" y="525" />
+        <di:waypoint x="1770" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BadgeListo_di" bpmnElement="Flow_BadgeListo">
+        <di:waypoint x="1860" y="360" />
+        <di:waypoint x="1920" y="360" />
+        <di:waypoint x="1920" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16_di" bpmnElement="Flow_16">
+        <di:waypoint x="2000" y="160" />
+        <di:waypoint x="2018" y="160" />
+        <di:waypoint x="2018" y="200" />
+        <di:waypoint x="2035" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RevisarSi_di" bpmnElement="Flow_RevisarSi">
+        <di:waypoint x="2060" y="175" />
+        <di:waypoint x="2060" y="130" />
+        <di:waypoint x="2110" y="130" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2075" y="112" width="11" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RevisarNo_di" bpmnElement="Flow_RevisarNo">
+        <di:waypoint x="2060" y="225" />
+        <di:waypoint x="2060" y="525" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2039" y="366" width="73" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Ajustado_di" bpmnElement="Flow_Ajustado">
+        <di:waypoint x="2160" y="160" />
+        <di:waypoint x="2160" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17_di" bpmnElement="Flow_17">
+        <di:waypoint x="2170" y="550" />
+        <di:waypoint x="2240" y="550" />
+        <di:waypoint x="2240" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18_di" bpmnElement="Flow_18">
+        <di:waypoint x="2240" y="325" />
+        <di:waypoint x="2240" y="160" />
+        <di:waypoint x="2302" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_Facturacion_di" bpmnElement="Participant_Facturacion" isHorizontal="true">
+        <dc:Bounds x="160" y="780" width="2200" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_CobroExitoso_di" bpmnElement="Gateway_CobroExitoso" isMarkerVisible="true">
+        <dc:Bounds x="925" y="835" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="883" y="826" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EmitirFactura_di" bpmnElement="Task_EmitirFactura">
+        <dc:Bounds x="1020" y="805" width="110" height="60" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_HabilitarLicencia_di" bpmnElement="Task_HabilitarLicencia">
+        <dc:Bounds x="1155" y="805" width="110" height="60" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_FacturacionAprobada_di" bpmnElement="EndEvent_FacturacionAprobada">
+        <dc:Bounds x="1292" y="817" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1270" y="860" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NotificarRechazo_di" bpmnElement="Task_NotificarRechazo">
+        <dc:Bounds x="1020" y="885" width="110" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_FacturacionRechazada_di" bpmnElement="EndEvent_FacturacionRechazada">
+        <dc:Bounds x="1162" y="895" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1151" y="938" width="58" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ProcesarPasarela_di" bpmnElement="Task_ProcesarPasarela">
+        <dc:Bounds x="780" y="865" width="110" height="70" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Facturacion_di" bpmnElement="StartEvent_Facturacion">
+        <dc:Bounds x="702" y="872" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="681" y="915" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Fact_1_di" bpmnElement="Flow_Fact_1">
+        <di:waypoint x="738" y="890" />
+        <di:waypoint x="759" y="890" />
+        <di:waypoint x="759" y="900" />
+        <di:waypoint x="780" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Fact_2_di" bpmnElement="Flow_Fact_2">
+        <di:waypoint x="890" y="900" />
+        <di:waypoint x="908" y="900" />
+        <di:waypoint x="908" y="860" />
+        <di:waypoint x="925" y="860" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CobroSi_di" bpmnElement="Flow_CobroSi">
+        <di:waypoint x="950" y="835" />
+        <di:waypoint x="950" y="825" />
+        <di:waypoint x="1020" y="825" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="964" y="808" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CobroNo_di" bpmnElement="Flow_CobroNo">
+        <di:waypoint x="950" y="885" />
+        <di:waypoint x="950" y="912" />
+        <di:waypoint x="1020" y="912" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="939" y="922" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Fact_3_di" bpmnElement="Flow_Fact_3">
+        <di:waypoint x="1130" y="835" />
+        <di:waypoint x="1155" y="835" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Fact_4_di" bpmnElement="Flow_Fact_4">
+        <di:waypoint x="1265" y="835" />
+        <di:waypoint x="1292" y="835" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Fact_Error_di" bpmnElement="Flow_Fact_Error">
+        <di:waypoint x="1130" y="912" />
+        <di:waypoint x="1162" y="912" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MsgFlow_SolicitudPago_di" bpmnElement="MsgFlow_SolicitudPago">
+        <di:waypoint x="835" y="690" />
+        <di:waypoint x="835" y="820" />
+        <di:waypoint x="720" y="820" />
+        <di:waypoint x="720" y="872" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="739" y="786" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MsgFlow_ConfirmacionPago_di" bpmnElement="MsgFlow_ConfirmacionPago">
+        <di:waypoint x="1310" y="817" />
+        <di:waypoint x="1310" y="708" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1345" y="800" width="89" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
